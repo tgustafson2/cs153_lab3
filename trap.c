@@ -79,10 +79,13 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
   case T_PGFLT:
-    if(allocuvm(myproc->pgdir, myproc->stack_bot-PGSIZE, myproc->stack_bot){
+    uint fault;
+    fault=rcr2();// to get location of fault
+    if(fault>=myproc->stack_bot-PGSIZE){
+      allocuvm(myproc->pgdir, myproc->stack_bot, myproc->stack_bot-PGSIZE);
       myproc->stack_bot-=PGSIZE;
-      clearpteu(myproc->pgdir,(char *)(myproc->stack_bot));//not sure about this
-      //output expanding message
+      cprintf("Stack size increased by 1\n");
+      break;
     }
 
   //PAGEBREAK: 13
