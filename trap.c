@@ -7,6 +7,7 @@
 #include "x86.h"
 #include "traps.h"
 #include "spinlock.h"
+#include "vm.c"
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -77,6 +78,12 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
+  case T_PGFLT:
+    if(allocuvm(myproc->pgdir, myproc->stack_bot-PGSIZE, myproc->stack_bot){
+      myproc->stack_bot-=PGSIZE;
+      clearpteu(myproc->pgdir,(char *)(myproc->stack_bot));//not sure about this
+      //output expanding message
+    }
 
   //PAGEBREAK: 13
   default:
