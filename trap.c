@@ -7,7 +7,6 @@
 #include "x86.h"
 #include "traps.h"
 #include "spinlock.h"
-#include "vm.c"
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -79,12 +78,12 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
   case T_PGFLT:
-    uint fault;
-    fault=rcr2();// to get location of fault
-    if(fault>=myproc->stack_bot-PGSIZE){
-      allocuvm(myproc->pgdir, myproc->stack_bot, myproc->stack_bot-PGSIZE);
-      myproc->stack_bot-=PGSIZE;
-      cprintf("Stack size increased by 1\n");
+    if(tf->esp >= myproc()->stack_bot - PGSIZE && tf->esp < myproc()->stack_bot){
+      deallocuvm(myproc()->pgdir, myproc()->stack_bot - 1 , myproc()->stack_bot - PGSIZE);
+      allocuvm(myproc()->pgdir, myproc()->stack_bot - 2*PGSIZE, myproc()->stack_bot - 1);
+      myproc()->stack_bot -= PGSIZE;
+      clearpteu(myproc()->pgdir, (char*)(myproc()->stack_bot - PGSIZE));
+      cprintf("Stack size increased by 1.\n");
       break;
     }
 
